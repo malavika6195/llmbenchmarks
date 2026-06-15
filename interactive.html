@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Embedded Benchmarking Table</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #ffffff; /* Clean white background for seamless presentation integration */
+        }
+        th, td {
+            font-size: 1.1rem; /* Upsized fonts for readability on projectors and screens */
+        }
+    </style>
+</head>
+<body class="p-4 antialiased">
+
+    <!-- Compact Presentation Controls -->
+    <div class="max-w-4xl mx-auto mb-4 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+        <div>
+            <h2 class="text-xl font-bold text-[#047857]" style="font-family: 'Montserrat', sans-serif;">Interactive Benchmarking Tool</h2>
+            <p class="text-sm text-slate-500">Click column headers to sort. Filter by domain below.</p>
+        </div>
+        <div class="flex gap-2">
+            <button onclick="filterDomain('all')" id="btn-all" class="px-4 py-2 text-sm font-semibold rounded-lg bg-[#047857] text-white transition-all shadow-md">All Domains</button>
+            <button onclick="filterDomain('legal')" id="btn-legal" class="px-4 py-2 text-sm font-semibold rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 transition-all">Legal</button>
+            <button onclick="filterDomain('medical')" id="btn-medical" class="px-4 py-2 text-sm font-semibold rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 transition-all">Medical</button>
+        </div>
+    </div>
+
+    <!-- Interactive Table Frame -->
+    <div class="max-w-4xl mx-auto overflow-hidden rounded-xl border border-slate-200 shadow-lg">
+        <table class="w-full text-left border-collapse" id="performanceTable">
+            <thead>
+                <tr class="bg-gradient-to-r from-[#047857] to-[#10b981] text-white">
+                    <th onclick="sortTable(0)" class="cursor-pointer p-4 select-none hover:bg-[#065f46] transition-colors relative">
+                        Model <span class="text-xs ml-1 opacity-75">▲▼</span>
+                    </th>
+                    <th onclick="sortTable(1)" class="cursor-pointer p-4 select-none hover:bg-[#065f46] transition-colors relative">
+                        Domain <span class="text-xs ml-1 opacity-75">▲▼</span>
+                    </th>
+                    <th onclick="sortTable(2)" class="cursor-pointer p-4 select-none hover:bg-[#065f46] transition-colors relative text-center">
+                        Triples <span class="text-xs ml-1 opacity-75">▲▼</span>
+                    </th>
+                    <th onclick="sortTable(3)" class="cursor-pointer p-4 select-none hover:bg-[#065f46] transition-colors relative text-center">
+                        Avg Latency <span class="text-xs ml-1 opacity-75">▲▼</span>
+                    </th>
+                    <th onclick="sortTable(4)" class="cursor-pointer p-4 select-none hover:bg-[#065f46] transition-colors relative text-center">
+                        Efficiency <span class="text-xs ml-1 opacity-75">▲▼</span>
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+                <tr class="hover:bg-slate-50 transition-colors" data-domain="legal">
+                    <td class="p-4 font-semibold text-slate-800">Llama 3</td>
+                    <td class="p-4 text-slate-600"><span class="px-2.5 py-1 text-xs font-bold rounded-full bg-emerald-100 text-[#047857]">Legal</span></td>
+                    <td class="p-4 text-center font-medium text-slate-800" data-val="57">57</td>
+                    <td class="p-4 text-center text-slate-600" data-val="64.5">64.5s</td>
+                    <td class="p-4 text-center font-semibold text-[#047857]" data-val="0.09">0.09 T/s</td>
+                </tr>
+                <tr class="hover:bg-slate-50 transition-colors" data-domain="medical">
+                    <td class="p-4 font-semibold text-slate-800">Llama 3</td>
+                    <td class="p-4 text-slate-600"><span class="px-2.5 py-1 text-xs font-bold rounded-full bg-teal-100 text-[#0d9488]">Medical</span></td>
+                    <td class="p-4 text-center font-medium text-slate-800" data-val="20">20</td>
+                    <td class="p-4 text-center text-slate-600" data-val="32.3">32.3s</td>
+                    <td class="p-4 text-center font-semibold text-[#0d9488]" data-val="0.06">0.06 T/s</td>
+                </tr>
+                <tr class="hover:bg-slate-50 transition-colors" data-domain="legal">
+                    <td class="p-4 font-semibold text-slate-800">Mistral</td>
+                    <td class="p-4 text-slate-600"><span class="px-2.5 py-1 text-xs font-bold rounded-full bg-emerald-100 text-[#047857]">Legal</span></td>
+                    <td class="p-4 text-center font-medium text-slate-800" data-val="52">52</td>
+                    <td class="p-4 text-center text-slate-600" data-val="68.5">68.5s</td>
+                    <td class="p-4 text-center font-semibold text-[#047857]" data-val="0.08">0.08 T/s</td>
+                </tr>
+                <tr class="hover:bg-slate-50 transition-colors" data-domain="medical">
+                    <td class="p-4 font-semibold text-slate-800">Mistral</td>
+                    <td class="p-4 text-slate-600"><span class="px-2.5 py-1 text-xs font-bold rounded-full bg-teal-100 text-[#0d9488]">Medical</span></td>
+                    <td class="p-4 text-center font-medium text-slate-800" data-val="30">30</td>
+                    <td class="p-4 text-center text-slate-600" data-val="32.4">32.4s</td>
+                    <td class="p-4 text-center font-semibold text-[#0d9488]" data-val="0.09">0.09 T/s</td>
+                </tr>
+                <tr class="hover:bg-slate-50 transition-colors" data-domain="legal">
+                    <td class="p-4 font-semibold text-slate-800">Gemma 2</td>
+                    <td class="p-4 text-slate-600"><span class="px-2.5 py-1 text-xs font-bold rounded-full bg-emerald-100 text-[#047857]">Legal</span></td>
+                    <td class="p-4 text-center font-medium text-slate-800" data-val="68">68</td>
+                    <td class="p-4 text-center text-slate-600" data-val="83.2">83.2s</td>
+                    <td class="p-4 text-center font-semibold text-[#047857]" data-val="0.08">0.08 T/s</td>
+                </tr>
+                <tr class="hover:bg-slate-50 transition-colors" data-domain="medical">
+                    <td class="p-4 font-semibold text-slate-800">Gemma 2</td>
+                    <td class="p-4 text-slate-600"><span class="px-2.5 py-1 text-xs font-bold rounded-full bg-teal-100 text-[#0d9488]">Medical</span></td>
+                    <td class="p-4 text-center font-medium text-slate-800" data-val="20">20</td>
+                    <td class="p-4 text-center text-slate-600" data-val="38.6">38.6s</td>
+                    <td class="p-4 text-center font-semibold text-[#0d9488]" data-val="0.05">0.05 T/s</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Sorting & Filtering Engine -->
+    <script>
+        let currentSortCol = -1;
+        let sortAscending = true;
+
+        function filterDomain(domain) {
+            const rows = document.querySelectorAll('#performanceTable tbody tr');
+            const buttons = {
+                all: document.getElementById('btn-all'),
+                legal: document.getElementById('btn-legal'),
+                medical: document.getElementById('btn-medical')
+            };
+
+            // Toggle active state classes for UI feedback
+            Object.keys(buttons).forEach(key => {
+                if (key === domain) {
+                    buttons[key].className = "px-4 py-2 text-sm font-semibold rounded-lg bg-[#047857] text-white transition-all shadow-md";
+                } else {
+                    buttons[key].className = "px-4 py-2 text-sm font-semibold rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 transition-all";
+                }
+            });
+
+            // Filter row visibility
+            rows.forEach(row => {
+                if (domain === 'all' || row.getAttribute('data-domain') === domain) {
+                    row.style.display = "";
+                } else {
+                    row.style.display = "none";
+                }
+            });
+        }
+
+        function sortTable(colIndex) {
+            const table = document.getElementById("performanceTable");
+            const tbody = table.querySelector("tbody");
+            const rows = Array.from(tbody.querySelectorAll("tr"));
+            
+            if (currentSortCol === colIndex) {
+                sortAscending = !sortAscending;
+            } else {
+                sortAscending = true;
+                currentSortCol = colIndex;
+            }
+
+            rows.sort((a, b) => {
+                let cellA = a.children[colIndex];
+                let cellB = b.children[colIndex];
+
+                let valA = cellA.getAttribute("data-val") || cellA.textContent.trim().toLowerCase();
+                let valB = cellB.getAttribute("data-val") || cellB.textContent.trim().toLowerCase();
+
+                // Convert string to numeric value for sorting if applicable
+                const numA = parseFloat(valA);
+                const numB = parseFloat(valB);
+
+                if (!isNaN(numA) && !isNaN(numB)) {
+                    return sortAscending ? numA - numB : numB - numA;
+                }
+                
+                return sortAscending 
+                    ? valA.localeCompare(valB) 
+                    : valB.localeCompare(valA);
+            });
+
+            // Re-render rows
+            rows.forEach(row => tbody.appendChild(row));
+        }
+    </script>
+</body>
+</html>
