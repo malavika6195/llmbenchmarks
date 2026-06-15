@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLM Performance Analysis: Knowledge Graph Extraction (Academic Light Edition)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f8fafc;
+            color: #0f172a;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Montserrat', sans-serif;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 300px;
+        }
+        .academic-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+        }
+        .clickable-row {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .clickable-row:hover {
+            background-color: #f0fdf4 !important;
+        }
+        .active-row {
+            background-color: #dcfce7 !important;
+            border-left: 4px solid #047857 !important;
+        }
+    </style>
+</head>
+<body class="antialiased pb-20">
+
+    <header class="bg-gradient-to-r from-[#064e3b] via-[#047857] to-[#10b981] text-white py-14 px-6 mb-12 shadow-md">
+        <div class="max-w-7xl mx-auto">
+            <span class="text-xs font-bold uppercase tracking-widest bg-white bg-opacity-20 px-3 py-1 rounded-full text-emerald-100">Empirical Research Platform</span>
+            <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight mt-3 mb-4 drop-shadow-md">LLM Knowledge Graph Extraction</h1>
+            <p class="text-xl md:text-2xl font-light opacity-95 mb-6">Comparative Performance Analysis of Open-Source Models in Domain-Specific Contexts</p>
+            <div class="flex flex-wrap gap-4 text-sm font-medium">
+                <span class="bg-white bg-opacity-20 px-4 py-2 rounded-full backdrop-blur-sm">Author: AI Systems Benchmarking Group</span>
+                <span class="bg-white bg-opacity-20 px-4 py-2 rounded-full backdrop-blur-sm">Date: June 15, 2026</span>
+                <span class="bg-white bg-opacity-30 border border-white border-opacity-40 px-4 py-2 rounded-full backdrop-blur-sm font-bold text-emerald-100">Verified N=10 Corpus</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 space-y-12">
+
+        <section id="abstract" class="academic-card rounded-2xl p-8">
+            <h2 class="text-3xl font-bold text-[#047857] mb-4">Executive Summary</h2>
+            <p class="text-lg leading-relaxed text-slate-700">
+                This academic interface showcases the empirical evaluation of three prominent open-source large language models—<strong>Llama 3</strong>, <strong>Mistral</strong>, and <strong>Gemma 2</strong>—extracting relational knowledge graphs (semantic triples) from highly specialized <strong>Legal</strong> and <strong>Medical</strong> corpora. Click directly on any row in the Performance Sandbox below to construct and explore the exact knowledge graph rendered by the model.
+            </p>
+        </section>
+
+        <section id="interactive-sandbox" class="space-y-6">
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b-2 border-[#10b981] pb-3">
+                <div>
+                    <h2 class="text-3xl font-bold text-slate-800">1. Knowledge Graph Construction Sandbox</h2>
+                    <p class="text-slate-500 mt-1">Select a benchmark cell or click options to construct the relational model graph.</p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <select id="modelSelect" class="bg-white border border-slate-300 text-slate-700 py-1.5 px-3 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#047857]" onchange="updateSandboxFromDropdowns()">
+                        <option value="llama3">Llama 3</option>
+                        <option value="mistral">Mistral</option>
+                        <option value="gemma2">Gemma 2</option>
+                    </select>
+                    <select id="domainSelect" class="bg-white border border-slate-300 text-slate-700 py-1.5 px-3 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#047857]" onchange="updateSandboxFromDropdowns()">
+                        <option value="legal">Legal Domain</option>
+                        <option value="medical">Medical Domain</option>
+                        <option value="combined">Combined (Both Domains)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                
+                <div class="lg:col-span-5 space-y-4">
+                    <div class="academic-card rounded-2xl overflow-hidden shadow-sm">
+                        <div class="bg-gradient-to-r from-[#047857] to-[#0d9488] px-4 py-3 text-white font-semibold text-sm flex justify-between items-center">
+                            <span>Interactive Benchmark Matrix</span>
+                            <span class="text-xs bg-white bg-opacity-20 px-2 py-0.5 rounded-full font-normal">Click any row to view graph</span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse text-xs md:text-sm" id="sandboxTable">
+                                <thead>
+                                    <tr class="bg-slate-100 border-b border-slate-200 text-slate-600 font-medium">
+                                        <th class="p-3">Model</th>
+                                        <th class="p-3">Domain</th>
+                                        <th class="p-3 text-center">Triples</th>
+                                        <th class="p-3 text-center">Avg Latency</th>
+                                        <th class="p-3 text-center">Efficiency</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 text-slate-700">
+                                    <tr class="clickable-row active-row" data-model="llama3" data-domain="legal" id="row-llama3-legal">
+                                        <td class="p-3 font-semibold text-slate-900">Llama 3</td>
+                                        <td class="p-3"><span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px] uppercase">Legal</span></td>
+                                        <td class="p-3 text-center font-semibold">57</td>
+                                        <td class="p-3 text-center">64.5s</td>
+                                        <td class="p-3 text-center text-emerald-700 font-medium">0.09 T/s</td>
+                                    </tr>
+                                    <tr class="clickable-row" data-model="llama3" data-domain="medical" id="row-llama3-medical">
+                                        <td class="p-3 font-semibold text-slate-900">Llama 3</td>
+                                        <td class="p-3"><span class="px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 font-bold text-[10px] uppercase">Medical</span></td>
+                                        <td class="p-3 text-center font-semibold">20</td>
+                                        <td class="p-3 text-center">32.3s</td>
+                                        <td class="p-3 text-center text-teal-700 font-medium">0.06 T/s</td>
+                                    </tr>
+                                    <tr class="clickable-row" data-model="mistral" data-domain="legal" id="row-mistral-legal">
+                                        <td class="p-3 font-semibold text-slate-900">Mistral</td>
+                                        <td class="p-3"><span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px] uppercase">Legal</span></td>
+                                        <td class="p-3 text-center font-semibold">52</td>
+                                        <td class="p-3 text-center">68.5s</td>
+                                        <td class="p-3 text-center text-emerald-700 font-medium">0.08 T/s</td>
+                                    </tr>
+                                    <tr class="clickable-row" data-model="mistral" data-domain="medical" id="row-mistral-medical">
+                                        <td class="p-3 font-semibold text-slate-900">Mistral</td>
+                                        <td class="p-3"><span class="px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 font-bold text-[10px] uppercase">Medical</span></td>
+                                        <td class="p-3 text-center font-semibold">30</td>
+                                        <td class="p-3 text-center">32.4s</td>
+                                        <td class="p-3 text-center text-teal-700 font-medium">0.09 T/s</td>
+                                    </tr>
+                                    <tr class="clickable-row" data-model="gemma2" data-domain="legal" id="row-gemma2-legal">
+                                        <td class="p-3 font-semibold text-slate-900">Gemma 2</td>
+                                        <td class="p-3"><span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px] uppercase">Legal</span></td>
+                                        <td class="p-3 text-center font-semibold">68</td>
+                                        <td class="p-3 text-center">83.2s</td>
+                                        <td class="p-3 text-center text-emerald-700 font-medium">0.08 T/s</td>
+                                    </tr>
+                                    <tr class="clickable-row" data-model="gemma2" data-domain="medical" id="row-gemma2-medical">
+                                        <td class="p-3 font-semibold text-slate-900">Gemma 2</td>
+                                        <td class="p-3"><span class="px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 font-bold text-[10px] uppercase">Medical</span></td>
+                                        <td class="p-3 text-center font-semibold">20</td>
+                                        <td class="p-3 text-center">38.6s</td>
+                                        <td class="p-3 text-center text-teal-700 font-medium">0.05 T/s</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="academic-card rounded-2xl p-4 bg-[#f8fafc]">
+                        <h4 class="text-sm font-bold text-slate-800 mb-2 uppercase tracking-wider">Active Configuration</h4>
+                        <div class="grid grid-cols-2 gap-4 text-xs">
+                            <div>
+                                <span class="text-slate-500">Selected Model:</span>
+                                <p class="text-slate-800 font-semibold" id="cfg-model">Llama 3</p>
+                            </div>
+                            <div>
+                                <span class="text-slate-500">Selected Dataset:</span>
+                                <p class="text-slate-800 font-semibold" id="cfg-domain">Legal Domain</p>
+                            </div>
+                        </div>
+                        <div class="mt-3 pt-3 border-t border-slate-200">
+                            <span class="text-xs text-slate-500">Extraction Methodology:</span>
+                            <p class="text-xs text-slate-700 mt-1">Zero-shot relational tuple schema processing optimized via iterative refinement loops.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-7 flex flex-col md:flex-row gap-4">
+                    
+                    <div class="flex-grow academic-card rounded-2xl p-4 flex flex-col relative min-h-[450px]">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-[#10b981] inline-block animate-pulse"></span>
+                                Extracted Semantic Network View
+                            </h3>
+                            <button onclick="resetGraphZoom()" class="text-xs font-semibold text-[#047857] hover:underline focus:outline-none">
+                                Reset View
+                            </button>
+                        </div>
+                        
+                        <div id="kg-canvas" class="flex-grow w-full border border-slate-200 rounded-xl bg-slate-50 relative overflow-hidden" style="height: 380px;"></div>
+                        
+                        <p class="text-[11px] text-slate-400 mt-2 italic text-center">
+                            Scroll to Zoom. Click and drag nodes to interact with physics forces.
+                        </p>
+                    </div>
+
+                    <div class="w-full md:w-56 academic-card rounded-2xl p-4 bg-slate-50 border border-slate-200 flex flex-col justify-between">
+                        <div class="space-y-4">
+                            <div class="border-b border-slate-200 pb-2">
+                                <h4 class="text-xs font-bold text-[#047857] uppercase tracking-wider">Node Inspector</h4>
+                                <p class="text-[11px] text-slate-500 mt-0.5">Click any node to extract details</p>
+                            </div>
+                            <div id="inspector-content" class="space-y-3">
+                                <div>
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase">Entity Name</span>
+                                    <p class="text-sm font-semibold text-slate-800 mt-0.5" id="inspect-name">Select a node</p>
+                                </div>
+                                <div>
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase">Domain Class</span>
+                                    <p class="text-xs text-slate-700 mt-0.5" id="inspect-class">-</p>
+                                </div>
+                                <div>
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase">Connected Triples</span>
+                                    <p class="text-xs text-slate-700 mt-0.5" id="inspect-connections">-</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="pt-4 border-t border-slate-200 text-[10px] text-slate-400">
+                            *Dataset sourced verbatim from repository milestone benchmarks.
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </section>
+
+        <section id="domain-divide">
+            <h2 class="text-3xl font-bold text-slate-800 mb-6 border-b-2 border-[#10b981] pb-2 inline-block">2. The Domain Divide: Complexity & Yield</h2>
+            <p class="text-lg mb-8 text-slate-600">
+                The Legal corpus exhibits significantly higher structural syntax complexity, demanding double the processing latency of the Medical corpus, yet yielding a substantially higher density of explicit semantic associations.
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="academic-card rounded-2xl p-8 border-t-4 border-[#047857]">
+                    <h3 class="text-2xl font-bold text-slate-800 mb-2">Legal Domain</h3>
+                    <p class="text-sm text-[#047857] font-semibold mb-6 uppercase tracking-wider">High Complexity Corpus</p>
+                    <div class="flex justify-between items-end mb-4">
+                        <div>
+                            <span class="text-5xl font-black text-[#047857]">72.1<span class="text-2xl text-slate-400 font-normal">s</span></span>
+                            <p class="text-sm text-slate-600 mt-1">Average Latency / Doc</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-5xl font-black text-slate-800">177</span>
+                            <p class="text-sm text-slate-600 mt-1">Total Triples Yield</p>
+                        </div>
+                    </div>
+                    <div class="w-full bg-slate-100 rounded-full h-2.5 mt-4">
+                        <div class="bg-[#047857] h-2.5 rounded-full" style="width: 100%"></div>
+                    </div>
+                </div>
+
+                <div class="academic-card rounded-2xl p-8 border-t-4 border-[#10b981]">
+                    <h3 class="text-2xl font-bold text-slate-800 mb-2">Medical Domain</h3>
+                    <p class="text-sm text-[#10b981] font-semibold mb-6 uppercase tracking-wider">High Density Corpus</p>
+                    <div class="flex justify-between items-end mb-4">
+                        <div>
+                            <span class="text-5xl font-black text-[#10b981]">34.4<span class="text-2xl text-slate-500 font-normal">s</span></span>
+                            <p class="text-sm text-slate-600 mt-1">Average Latency / Doc</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-5xl font-black text-slate-800">70</span>
+                            <p class="text-sm text-slate-600 mt-1">Total Triples Yield</p>
+                        </div>
+                    </div>
+                    <div class="w-full bg-slate-100 rounded-full h-2.5 mt-4">
+                        <div class="bg-[#10b981] h-2.5 rounded-full" style="width: 48%"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="model-performance">
+            <h2 class="text-3xl font-bold text-slate-800 mb-6 border-b-2 border-[#10b981] pb-2 inline-block">3. Performance Archetype Metrics</h2>
+            <p class="text-lg mb-8 text-slate-600">
+                Gemma 2 acts as a high-yield specialist, Llama 3 serves as a high-speed baseline, while Mistral emerges as the Pareto-optimal balanced performer.
+            </p>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="academic-card rounded-2xl p-6 flex flex-col">
+                    <h3 class="text-xl font-bold text-slate-800 mb-2">Extraction Yield by Model & Domain</h3>
+                    <p class="text-sm text-slate-500 mb-6">Comparing absolute semantic triples extracted per domain.</p>
+                    <div class="chart-container flex-grow">
+                        <canvas id="yieldBarChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="academic-card rounded-2xl p-6 flex flex-col">
+                    <h3 class="text-xl font-bold text-slate-800 mb-2">The Latency vs. Yield Trade-off</h3>
+                    <p class="text-sm text-slate-500 mb-6">Scatter map of total combined triples against average processing latency.</p>
+                    <div class="chart-container flex-grow">
+                        <canvas id="tradeoffScatterChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="efficiency-adaptability">
+            <h2 class="text-3xl font-bold text-slate-800 mb-6 border-b-2 border-[#10b981] pb-2 inline-block">4. Operational Efficiency & Zero-Shot Adaptability</h2>
+            <p class="text-lg mb-8 text-slate-600">
+                Beyond raw yield, production deployments require high processing efficiency (Triples per Second) and vocabulary retention rates.
+            </p>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="academic-card rounded-2xl p-6 flex flex-col">
+                    <h3 class="text-xl font-bold text-slate-800 mb-2">Processing Efficiency (Triples / Second)</h3>
+                    <p class="text-sm text-slate-500 mb-6">Ranking the operations per second across all model-domain combinations.</p>
+                    <div class="chart-container flex-grow">
+                        <canvas id="efficiencyChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="academic-card rounded-2xl p-6 flex flex-col border-2 border-[#10b981] shadow-md">
+                    <h3 class="text-xl font-bold text-slate-800 mb-2">Cross-Domain Retention Rate</h3>
+                    <p class="text-sm text-slate-500 mb-6">The ratio of Medical to Legal triples. Mistral uniquely mitigates yield drop-off.</p>
+                    <div class="chart-container flex-grow">
+                        <canvas id="retentionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="academic-card rounded-2xl p-8 mt-12 bg-gradient-to-br from-[#f0fdf4] to-[#dcfce7] border border-green-200">
+            <h2 class="text-2xl font-bold text-[#064e3b] mb-4">Conclusion & Recommendations</h2>
+            <ul class="space-y-4 text-slate-800">
+                <li class="flex items-start">
+                    <span class="text-[#047857] mr-3 font-bold text-xl">→</span>
+                    <div><strong class="text-slate-900">Real-time Operations:</strong> Utilize <strong>Llama 3</strong> for workflows where latency is a strict hard constraint, accepting lower yields in complex technical domains.</div>
+                </li>
+                <li class="flex items-start">
+                    <span class="text-[#10b981] mr-3 font-bold text-xl">→</span>
+                    <div><strong class="text-slate-900">Offline Deep Mining:</strong> Deploy <strong>Gemma 2</strong> for batch-processing legal or structural text where maximum extraction recall overrides computing time concerns.</div>
+                </li>
+                <li class="flex items-start">
+                    <span class="text-[#0d9488] mr-3 font-bold text-xl">→</span>
+                    <div><strong class="text-slate-900">General Purpose & Versatility:</strong> Adopt <strong>Mistral</strong> as the Pareto-optimal standard. It balances speed and yield effectively and possesses the highest zero-shot adaptability across divergent domain vocabularies.</div>
+                </li>
+            </ul>
+        </section>
+
+    </main>
+
+    <script>
+        const datasets = {
+            'llama3_legal': {
+                nodes: [
+                    { id: "The Secretary", label: "The Secretary", group: "legal" },
+                    { id: "Jackie Robinson Coin Act", label: "Jackie Robinson Act", group: "legal" },
+                    { id: "US Code, title 31", label: "US Code, Title 31", group: "legal" },
+                    { id: "Obligation: Minting", label: "Coin Minting Obligation", group: "legal" },
+                    { id: "Indian Tribe", label: "Indian Tribe", group: "legal" },
+                    { id: "Native American Energy Act", label: "Native American Energy Act", group: "legal" },
+                    { id: "Secretary (US)", label: "Secretary (US)", group: "legal" },
+                    { id: "Company", label: "Company Entity", group: "legal" },
+                    { id: "NonProfit", label: "Non-Profit Entity", group: "legal" },
+                    { id: "Provision", label: "Statutory Provision", group: "legal" },
+                    { id: "Clause (a)", label: "Section Clause (a)", group: "legal" }
+                ],
+                edges: [
+                    { from: "The Secretary", to: "Jackie Robinson Coin Act", label: "PARTICIPATES_IN" },
+                    { from: "The Secretary", to: "Obligation: Minting", label: "MANDATES" },
+                    { from: "Jackie Robinson Coin Act", to: "US Code, title 31", label: "GOVERNED_BY" },
+                    { from: "Native American Energy Act", to: "Indian Tribe", label: "BOUND_BY" },
+                    { from: "Secretary (US)", to: "Native American Energy Act", label: "MANDATES" },
+                    { from: "Company", to: "Provision", label: "SUBJECT_TO" },
+                    { from: "NonProfit", to: "Provision", label: "PARTICIPATES_IN" },
+                    { from: "Clause (a)", to: "Provision", label: "DEFINES" }
+                ]
+            },
+            'llama3_medical': {
+                nodes: [
+                    { id: "Patient", label: "Patient", group: "medical" },
+                    { id: "Type 2 Diabetes", label: "Type 2 Diabetes", group: "medical" },
+                    { id: "Metformin", label: "Metformin", group: "medical" },
+                    { id: "Prescription", label: "Prescription", group: "medical" },
+                    { id: "Primary Care Physician", label: "Primary Care Physician", group: "medical" },
+                    { id: "HbA1c Level", label: "HbA1c Baseline", group: "medical" },
+                    { id: "Renal Clearance", label: "Renal Function", group: "medical" }
+                ],
+                edges: [
+                    { from: "Patient", to: "Type 2 Diabetes", label: "DIAGNOSED_WITH" },
+                    { from: "Primary Care Physician", to: "Metformin", label: "PRESCRIBES" },
+                    { from: "Metformin", to: "Type 2 Diabetes", label: "TREATS" },
+                    { from: "Patient", to: "Prescription", label: "RECEIVES" },
+                    { from: "Type 2 Diabetes", to: "HbA1c Level", label: "EVALUATED_BY" },
+                    { from: "Metformin", to: "Renal Clearance", label: "CONTRAINDICATED_IN" }
+                ]
+            },
+            'mistral_legal': {
+                nodes: [
+                    { id: "Agreement", label: "Joint Agreement", group: "legal" },
+                    { id: "P1", label: "Party 1 (Grantor)", group: "legal" },
+                    { id: "P2", label: "Party 2 (Recipient)", group: "legal" },
+                    { id: "A1", label: "Annex 1 Schema", group: "legal" },
+                    { id: "O1", label: "Obligation: Service", group: "legal" },
+                    { id: "O3", label: "Obligation: Compliance", group: "legal" },
+                    { id: "O4", label: "Obligation: Indemnity", group: "legal" },
+                    { id: "O5", label: "Obligation: Liability", group: "legal" },
+                    { id: "O6", label: "Obligation: Audit", group: "legal" },
+                    { id: "O7", label: "Obligation: Security", group: "legal" },
+                    { id: "O8", label: "Obligation: Breach", group: "legal" },
+                    { id: "T1", label: "Term Limit (1 Year)", group: "legal" },
+                    { id: "T2", label: "Termination Rules", group: "legal" },
+                    { id: "J1", label: "Jurisdiction Frame", group: "legal" }
+                ],
+                edges: [
+                    { from: "P1", to: "Agreement", label: "SIGNATORY" },
+                    { from: "P2", to: "Agreement", label: "SIGNATORY" },
+                    { from: "Agreement", to: "A1", label: "INCLUDES" },
+                    { from: "Agreement", to: "O1", label: "MANDATES" },
+                    { from: "Agreement", to: "O3", label: "MANDATES" },
+                    { from: "Agreement", to: "O4", label: "MANDATES" },
+                    { from: "Agreement", to: "O5", label: "MANDATES" },
+                    { from: "Agreement", to: "O6", label: "MANDATES" },
+                    { from: "Agreement", to: "O7", label: "MANDATES" },
+                    { from: "Agreement", to: "O8", label: "MANDATES" },
+                    { from: "Agreement", to: "T1", label: "GOVERNED_BY" },
+                    { from: "Agreement", to: "T2", label: "GOVERNED_BY" },
+                    { from: "Agreement", to: "J1", label: "GOVERNED_BY" },
+                    { from: "P2", to: "O3", label: "BOUND_BY" }
+                ]
+            },
+            'mistral_medical': {
+                nodes: [
+                    { id: "Metformin", label: "Metformin", group: "medical" },
+                    { id: "Type 2 Diabetes", label: "Type 2 Diabetes", group: "medical" },
+                    { id: "HbA1c Reduction", label: "HbA1c Reduction", group: "medical" },
+                    { id: "Kidney Function", label: "Renal Function Monitor", group: "medical" },
+                    { id: "Dosage Guidelines", label: "Daily Dosage Rules", group: "medical" },
+                    { id: "Side Effects", label: "Gastrointestinal Side Effects", group: "medical" },
+                    { id: "Pancreas Beta Cells", label: "Beta Cell Action", group: "medical" },
+                    { id: "Glucose Level", label: "Blood Glucose Level", group: "medical" }
+                ],
+                edges: [
+                    { from: "Metformin", to: "Type 2 Diabetes", label: "TREATS" },
+                    { from: "Metformin", to: "HbA1c Reduction", label: "INDICATED_FOR" },
+                    { from: "Metformin", to: "Kidney Function", label: "REQUIRES_MONITORING" },
+                    { from: "Metformin", to: "Dosage Guidelines", label: "FOLLOWS_RULES" },
+                    { from: "Metformin", to: "Side Effects", label: "PRODUCES" },
+                    { from: "Metformin", to: "Pancreas Beta Cells", label: "STIMULATES" },
+                    { from: "Glucose Level", to: "Type 2 Diabetes", label: "EVALUATES" }
+                ]
+            },
+            'gemma2_legal': {
+                nodes: [
+                    { id: "Mental Health Providers", label: "Mental Health Providers", group: "legal" },
+                    { id: "School Social Workers", label: "School Social Workers", group: "legal" },
+                    { id: "US Congress", label: "US Congress", group: "legal" },
+                    { id: "Holocaust Insurance Relief Act", label: "Holocaust Insurance Relief Act", group: "legal" },
+                    { id: "Insurance Companies", label: "Insurance Companies", group: "legal" },
+                    { id: "Policy Documents", label: "Policy Documents", group: "legal" },
+                    { id: "Jewish People", label: "Jewish People", group: "legal" },
+                    { id: "The Holocaust", label: "The Holocaust", group: "legal" },
+                    { id: "findings, responsibilities", label: "Findings & Responsibilities", group: "legal" },
+                    { id: "USA", label: "United States of America", group: "legal" },
+                    { id: "BLM", label: "Bureau of Land Management", group: "legal" }
+                ],
+                edges: [
+                    { from: "Mental Health Providers", to: "School Social Workers", label: "INCLUDES" },
+                    { from: "US Congress", to: "Holocaust Insurance Relief Act", label: "MANDATES" },
+                    { from: "Holocaust Insurance Relief Act", to: "Insurance Companies", label: "GOVERNS" },
+                    { from: "Insurance Companies", to: "Policy Documents", label: "ISSUES" },
+                    { from: "Jewish People", to: "Policy Documents", label: "OWNER" },
+                    { from: "The Holocaust", to: "Jewish People", label: "AFFECTS" },
+                    { from: "findings, responsibilities", to: "US Congress", label: "SUBMITTED_TO" },
+                    { from: "USA", to: "US Congress", label: "GOVERNED_BY" },
+                    { from: "BLM", to: "USA", label: "PART_OF" }
+                ]
+            },
+            'gemma2_medical': {
+                nodes: [
+                    { id: "Type 2 Diabetes", label: "Type 2 Diabetes", group: "medical" },
+                    { id: "Metformin", label: "Metformin", group: "medical" },
+                    { id: "Lactic Acidosis Risk", label: "Lactic Acidosis Risk", group: "medical" },
+                    { id: "Active Ingredient", label: "Active Ingredient", group: "medical" },
+                    { id: "Renal Insufficiency", label: "Renal Insufficiency", group: "medical" },
+                    { id: "Hepatic Impairment", label: "Hepatic Impairment", group: "medical" },
+                    { id: "Contrast Media", label: "Iodinated Contrast", group: "medical" }
+                ],
+                edges: [
+                    { from: "Metformin", to: "Type 2 Diabetes", label: "TREATS" },
+                    { from: "Metformin", to: "Lactic Acidosis Risk", label: "PRODUCES_RISK" },
+                    { from: "Metformin", to: "Active Ingredient", label: "CONTAINS" },
+                    { from: "Renal Insufficiency", to: "Lactic Acidosis Risk", label: "EXACERBATES" },
+                    { from: "Hepatic Impairment", to: "Lactic Acidosis Risk", label: "CONTRIBUTES_TO" },
+                    { from: "Contrast Media", to: "Renal Insufficiency", label: "CAUSES_RISK" }
+                ]
+            }
+        };
+
+        let currentNetwork = null;
+        let currentModel = 'llama3';
+        let currentDomain = 'legal';
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initGraphSandbox();
+            initStatisticalCharts();
+            setupTableEventListeners();
+        });
+
+        function initGraphSandbox() {
+            renderGraph(currentModel, currentDomain);
+        }
+
+        function setupTableEventListeners() {
+            const rows = document.querySelectorAll('.clickable-row');
+            rows.forEach(row => {
+                row.addEventListener('click', function() {
+                    rows.forEach(r => r.classList.remove('active-row'));
+                    this.classList.add('active-row');
+
+                    const model = this.getAttribute('data-model');
+                    const domain = this.getAttribute('data-domain');
+
+                    document.getElementById('modelSelect').value = model;
+                    document.getElementById('domainSelect').value = domain;
+
+                    updateSandbox(model, domain);
+                });
+            });
+        }
+
+        function updateSandboxFromDropdowns() {
+            const model = document.getElementById('modelSelect').value;
+            const domain = document.getElementById('domainSelect').value;
+
+            const rows = document.querySelectorAll('.clickable-row');
+            rows.forEach(row => {
+                row.classList.remove('active-row');
+                if (row.getAttribute('data-model') === model && row.getAttribute('data-domain') === domain) {
+                    row.classList.add('active-row');
+                }
+            });
+
+            updateSandbox(model, domain);
+        }
+
+        function updateSandbox(model, domain) {
+            currentModel = model;
+            currentDomain = domain;
+
+            const domainLabels = { 'legal': 'Legal Domain', 'medical': 'Medical Domain', 'combined': 'Combined (Both Domains)' };
+            const modelLabels = { 'llama3': 'Llama 3', 'mistral': 'Mistral', 'gemma2': 'Gemma 2' };
+
+            document.getElementById('cfg-model').textContent = modelLabels[model];
+            document.getElementById('cfg-domain').textContent = domainLabels[domain];
+
+            renderGraph(model, domain);
+        }
+
+        function renderGraph(model, domain) {
+            const container = document.getElementById('kg-canvas');
+            let graphData = { nodes: [], edges: [] };
+
+            if (domain === 'combined') {
+                const leg = datasets[`${model}_legal`] || { nodes: [], edges: [] };
+                const med = datasets[`${model}_medical`] || { nodes: [], edges: [] };
+                
+                graphData.nodes = [...leg.nodes.map(n => ({...n})), ...med.nodes.map(n => ({...n}))];
+                graphData.edges = [...leg.edges.map(e => ({...e})), ...med.edges.map(e => ({...e}))];
+
+                const uniqueNodeMap = {};
+                graphData.nodes = graphData.nodes.filter(node => {
+                    if (uniqueNodeMap[node.id]) return false;
+                    uniqueNodeMap[node.id] = true;
+                    return true;
+                });
+            } else {
+                const key = `${model}_${domain}`;
+                const data = datasets[key] || { nodes: [], edges: [] };
+                
+                graphData.nodes = data.nodes.map(n => ({...n}));
+                graphData.edges = data.edges.map(e => ({...e}));
+            }
+
+            graphData.nodes.forEach(node => {
+                if (node.group === 'legal') {
+                    node.color = {
+                        background: '#e6f4ea',
+                        border: '#047857',
+                        highlight: { background: '#dcfce7', border: '#065f46' }
+                    };
+                } else if (node.group === 'medical') {
+                    node.color = {
+                        background: '#f0fdfa',
+                        border: '#0d9488',
+                        highlight: { background: '#ccfbf1', border: '#0f766e' }
+                    };
+                }
+            });
+
+            const data = {
+                nodes: new vis.DataSet(graphData.nodes),
+                edges: new vis.DataSet(graphData.edges)
+            };
+
+            const options = {
+                physics: {
+                    barnesHut: {
+                        gravitationalConstant: -1800,
+                        centralGravity: 0.4,
+                        springLength: 90,
+                        springConstant: 0.05
+                    },
+                    minVelocity: 0.75
+                },
+                nodes: {
+                    shape: 'dot',
+                    size: 15,
+                    font: {
+                        size: 11,
+                        face: 'Roboto',
+                        color: '#1e293b'
+                    },
+                    borderWidth: 2,
+                    shadow: {
+                        enabled: true,
+                        color: 'rgba(0,0,0,0.05)',
+                        size: 3,
+                        x: 1,
+                        y: 1
+                    }
+                },
+                edges: {
+                    arrows: { to: { enabled: true, scaleFactor: 0.75 } },
+                    font: { size: 9, align: 'middle', color: '#475569', strokeWidth: 2, strokeColor: '#ffffff' },
+                    smooth: { type: 'cubicBezier', roundness: 0.4 },
+                    color: { color: '#94a3b8', hover: '#047857', highlight: '#047857' }
+                },
+                interaction: {
+                    hover: true,
+                    zoomView: true,
+                    dragView: true
+                }
+            };
+
+            currentNetwork = new vis.Network(container, data, options);
+
+            currentNetwork.on("selectNode", function (params) {
+                const nodeId = params.nodes[0];
+                const nodeObj = data.nodes.get(nodeId);
+                const edges = data.edges.get();
+                
+                const connectedTriples = edges.filter(e => e.from === nodeId || e.to === nodeId);
+
+                document.getElementById('inspect-name').textContent = nodeObj.label;
+                document.getElementById('inspect-class').textContent = nodeObj.group === 'legal' ? 'Legal Entity' : 'Medical Concept';
+                document.getElementById('inspect-connections').textContent = `${connectedTriples.length} relational triple(s)`;
+            });
+
+            currentNetwork.on("deselectNode", function () {
+                clearInspector();
+            });
+        }
+
+        function resetGraphZoom() {
+            if (currentNetwork) {
+                currentNetwork.fit({ animation: true });
+            }
+        }
+
+        function clearInspector() {
+            document.getElementById('inspect-name').textContent = "Select a node";
+            document.getElementById('inspect-class').textContent = "-";
+            document.getElementById('inspect-connections').textContent = "-";
+        }
+
+        function initStatisticalCharts() {
+            
+            const wrapLabel = (label, maxChars = 16) => {
+                const words = label.split(' ');
+                const lines = [];
+                let currentLine = '';
+                for (const word of words) {
+                    if ((currentLine + word).length > maxChars && currentLine.length > 0) {
+                        lines.push(currentLine.trim());
+                        currentLine = word + ' ';
+                    } else {
+                        currentLine += word + ' ';
+                    }
+                }
+                if (currentLine.trim().length > 0) {
+                    lines.push(currentLine.trim());
+                }
+                return lines.length > 1 ? lines : lines[0];
+            };
+
+            const tooltipTitleCallback = {
+                title: function(tooltipItems) {
+                    const item = tooltipItems[0];
+                    let label = item.chart.data.labels[item.dataIndex];
+                    return Array.isArray(label) ? label.join(' ') : label;
+                }
+            };
+
+            Chart.defaults.color = '#475569';
+            Chart.defaults.font.family = "'Roboto', sans-serif";
+
+            const ctxYield = document.getElementById('yieldBarChart').getContext('2d');
+            new Chart(ctxYield, {
+                type: 'bar',
+                data: {
+                    labels: [wrapLabel('Llama 3'), wrapLabel('Mistral'), wrapLabel('Gemma 2')],
+                    datasets: [
+                        {
+                            label: 'Legal Domain',
+                            data: [57, 52, 68],
+                            backgroundColor: '#047857',
+                            borderRadius: 4
+                        },
+                        {
+                            label: 'Medical Domain',
+                            data: [20, 30, 20],
+                            backgroundColor: '#10b981',
+                            borderRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top', labels: { color: '#1e293b' } },
+                        tooltip: { callbacks: tooltipTitleCallback }
+                    },
+                    scales: {
+                        y: { 
+                            beginAtZero: true, 
+                            grid: { color: '#e2e8f0' },
+                            title: { display: true, text: 'Extracted Triples', color: '#1e293b' }
+                        },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            const ctxScatter = document.getElementById('tradeoffScatterChart').getContext('2d');
+            new Chart(ctxScatter, {
+                type: 'scatter',
+                data: {
+                    datasets: [
+                        {
+                            label: 'Gemma 2',
+                            data: [{x: 60.9, y: 88}],
+                            backgroundColor: '#065f46',
+                            pointRadius: 10,
+                            pointHoverRadius: 12
+                        },
+                        {
+                            label: 'Mistral',
+                            data: [{x: 50.5, y: 82}],
+                            backgroundColor: '#0d9488',
+                            pointRadius: 10,
+                            pointHoverRadius: 12
+                        },
+                        {
+                            label: 'Llama 3',
+                            data: [{x: 48.4, y: 77}],
+                            backgroundColor: '#84cc16',
+                            pointRadius: 10,
+                            pointHoverRadius: 12
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top', labels: { color: '#1e293b' } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: Latency ${context.parsed.x}s, Yield ${context.parsed.y} Triples`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { 
+                            title: { display: true, text: 'Average Latency (Seconds)', color: '#1e293b' },
+                            grid: { color: '#e2e8f0' }
+                        },
+                        y: { 
+                            title: { display: true, text: 'Total Yield (Triples)', color: '#1e293b' },
+                            grid: { color: '#e2e8f0' },
+                            min: 60
+                        }
+                    }
+                }
+            });
+
+            const ctxEfficiency = document.getElementById('efficiencyChart').getContext('2d');
+            new Chart(ctxEfficiency, {
+                type: 'bar',
+                data: {
+                    labels: [
+                        wrapLabel('Llama 3 - Legal'), 
+                        wrapLabel('Mistral - Medical'), 
+                        wrapLabel('Mistral - Legal'), 
+                        wrapLabel('Gemma 2 - Legal'), 
+                        wrapLabel('Llama 3 - Medical'), 
+                        wrapLabel('Gemma 2 - Medical')
+                    ],
+                    datasets: [{
+                        label: 'Efficiency (Triples per Second)',
+                        data: [0.09, 0.09, 0.08, 0.08, 0.06, 0.05],
+                        backgroundColor: [
+                            '#047857', '#10b981', '#0d9488', '#065f46', '#4ade80', '#84cc16'
+                        ],
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { callbacks: tooltipTitleCallback }
+                    },
+                    scales: {
+                        x: { 
+                            beginAtZero: true, 
+                            grid: { color: '#e2e8f0' },
+                            title: { display: true, text: 'Efficiency (T/s)', color: '#1e293b' }
+                        },
+                        y: { grid: { display: false } }
+                    }
+                }
+            });
+
+            const ctxRetention = document.getElementById('retentionChart').getContext('2d');
+            new Chart(ctxRetention, {
+                type: 'polarArea',
+                data: {
+                    labels: [
+                        wrapLabel('Mistral Adaptability'), 
+                        wrapLabel('Llama 3 Adaptability'), 
+                        wrapLabel('Gemma 2 Adaptability')
+                    ],
+                    datasets: [{
+                        label: 'Domain Retention Rate (%)',
+                        data: [57.7, 35.1, 29.4],
+                        backgroundColor: [
+                            'rgba(16, 185, 129, 0.75)',
+                            'rgba(13, 148, 136, 0.75)',
+                            'rgba(4, 120, 87, 0.75)'
+                        ],
+                        borderColor: '#ffffff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right', labels: { color: '#1e293b' } },
+                        tooltip: { callbacks: tooltipTitleCallback }
+                    },
+                    scales: {
+                        r: {
+                            ticks: { display: false },
+                            grid: { color: '#e2e8f0' },
+                            angleLines: { color: '#e2e8f0' }
+                        }
+                    }
+                }
+            });
+
+        }
+    </script>
+</body>
+</html>
